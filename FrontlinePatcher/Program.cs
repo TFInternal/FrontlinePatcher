@@ -1,4 +1,5 @@
 ﻿using FrontlinePatcher.Patch;
+using FrontlinePatcher.Patch.Patches;
 
 const string baseDir = "/home/nuutti/Downloads/Managed/";
 var assemblyCSharpPath = Path.Combine(baseDir, "Assembly-CSharp.dll");
@@ -9,6 +10,7 @@ var outputPath = Path.Combine(outputDir, "Assembly-CSharp.dll");
 Directory.CreateDirectory(outputDir);
 
 var patcher = new AssemblyPatcher(assemblyCSharpPath);
+patcher.AddPatch(new GameDebugLogPatch());
 
 patcher.LoadAssembly();
 
