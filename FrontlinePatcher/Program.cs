@@ -11,6 +11,7 @@ Directory.CreateDirectory(outputDir);
 
 var patcher = new AssemblyPatcher(assemblyCSharpPath);
 patcher.AddPatch(new GameDebugLogPatch());
+patcher.AddPatch(new StorePurchasePatch());
 
 patcher.LoadAssembly();
 
