@@ -9,6 +9,8 @@
 
     <ItemGroup>
       <PackageReference Include="dnlib" Version="4.4.0" />
+      <PackageReference Include="Spectre.Console" Version="0.50.0" />
+      <PackageReference Include="Spectre.Console.Cli" Version="0.50.0" />
     </ItemGroup>
 
 </Project>
