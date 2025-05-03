@@ -1,5 +1,6 @@
 using dnlib.DotNet;
 using dnlib.DotNet.Emit;
+using Spectre.Console;
 
 namespace FrontlinePatcher.Patch.Patches;
 
@@ -12,28 +13,28 @@ public class GameDebugLogPatch : Patch
         var gameDebugType = module.Find("GameDebug", true);
         if (gameDebugType is null)
         {
-            Console.Error.WriteLine("  GameDebug type not found!");
+            AnsiConsole.MarkupLine("[red]  GameDebug type not found![/]");
             return false;
         }
         
         var logGroupType = module.Find("LogGroup", true);
         if (logGroupType is null)
         {
-            Console.Error.WriteLine("  LogGroup type not found!");
+            AnsiConsole.MarkupLine("[red]  LogGroup type not found![/]");
             return false;
         }
         
         var logLevelType = module.Find("LogLevel", true);
         if (logLevelType is null)
         {
-            Console.Error.WriteLine("  LogLevel type not found!");
+            AnsiConsole.MarkupLine("[red]  LogLevel type not found![/]");
             return false;
         }
         
         var unityEngineObjectType = FindUnityEngineType(module, "UnityEngine.Object");
         if (unityEngineObjectType is null)
         {
-            Console.Error.WriteLine("  UnityEngine.Object type not found!");
+            AnsiConsole.MarkupLine("[red]  UnityEngine.Object type not found![/]");
             return false;
         }
 
@@ -57,16 +58,16 @@ public class GameDebugLogPatch : Patch
         var targetMethod = gameDebugType.FindMethod("Log", targetSig);
         if (targetMethod is null)
         {
-            Console.Error.WriteLine("  Log method not found!");
+            AnsiConsole.MarkupLine("[red]  Log method not found![/]");
             return false;
         }
         
-        Console.WriteLine($"  Log method found! {targetMethod.FullName}");
+        AnsiConsole.WriteLine($"  Log method found! {targetMethod.FullName}");
         
         var unityDebugType = FindUnityEngineType(module, "UnityEngine.Debug");
         if (unityDebugType is null)
         {
-            Console.Error.WriteLine("  UnityEngine.Debug type not found!");
+            AnsiConsole.MarkupLine("[red]  UnityEngine.Debug type not found![/]");
             return false;
         }
         
@@ -81,13 +82,13 @@ public class GameDebugLogPatch : Patch
         var logFormatMethodDef = unityDebugType.FindMethod("LogFormat", logFormatSig);
         if (logFormatMethodDef is null)
         {
-            Console.Error.WriteLine("  UnityEngine.Debug.LogFormat method not found!");
+            AnsiConsole.MarkupLine("[red]  UnityEngine.Debug.LogFormat method not found![/]");
             return false;
         }
 
         var logFormatMethodRef = module.Import(logFormatMethodDef);
 
-        Console.WriteLine($"  LogFormat method found! {logFormatMethodRef.FullName}");
+        AnsiConsole.WriteLine($"  LogFormat method found! {logFormatMethodRef.FullName}");
         
         // Find UnityEngine.Debug.Log
         var logSig = MethodSig.CreateStatic(
@@ -99,13 +100,13 @@ public class GameDebugLogPatch : Patch
         var logMethodDef = unityDebugType.FindMethod("Log", logSig);
         if (logMethodDef is null)
         {
-            Console.Error.WriteLine("  UnityEngine.Debug.Log method not found!");
+            AnsiConsole.MarkupLine("[red]  UnityEngine.Debug.Log method not found![/]");
             return false;
         }
         
         var logMethodRef = module.Import(logMethodDef);
         
-        Console.WriteLine($"  Log method found! {logMethodRef.FullName}");
+        AnsiConsole.WriteLine($"  Log method found! {logMethodRef.FullName}");
         
         // Modify method body
         var body = targetMethod.Body;
@@ -144,7 +145,7 @@ public class GameDebugLogPatch : Patch
         
         body.OptimizeBranches();
         
-        Console.WriteLine("  Successfully modified method body!");
+        AnsiConsole.WriteLine("  Successfully modified method body!");
         return true;
     }
 }

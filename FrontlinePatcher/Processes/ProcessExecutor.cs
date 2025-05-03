@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Text;
+using Spectre.Console;
 
 namespace FrontlinePatcher.Processes;
 
@@ -7,7 +8,7 @@ public static class ProcessExecutor
 {
     public static async Task<ProcessResult> RunAsync(string fileName, string arguments, string? workingDirectory = null)
     {
-        Console.WriteLine($"Executing: {fileName} {arguments}");
+        AnsiConsole.MarkupLine($"[yellow]Executing: {fileName} {arguments}[/]");
 
         var process = new Process
         {
@@ -38,7 +39,7 @@ public static class ProcessExecutor
             else
             {
                 output.AppendLine(e.Data);
-                Console.WriteLine(e.Data);
+                AnsiConsole.WriteLine(e.Data);
             }
         };
 
@@ -51,7 +52,7 @@ public static class ProcessExecutor
             else
             {
                 error.AppendLine(e.Data);
-                Console.Error.WriteLine(e.Data);
+                AnsiConsole.MarkupLine($"[red]{e.Data}[/]");
             }
         };
 
@@ -69,7 +70,7 @@ public static class ProcessExecutor
             return new ProcessResult(-1, string.Empty, e.Message);
         }
         
-        Console.WriteLine($"Process exited with code: {process.ExitCode}");
+        AnsiConsole.WriteLine($"Process exited with code {process.ExitCode}.");
         return new ProcessResult(process.ExitCode, output.ToString().Trim(), error.ToString().Trim());
     }
 }

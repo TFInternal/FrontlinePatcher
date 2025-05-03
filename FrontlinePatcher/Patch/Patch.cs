@@ -1,4 +1,5 @@
 using dnlib.DotNet;
+using Spectre.Console;
 
 namespace FrontlinePatcher.Patch;
 
@@ -30,14 +31,14 @@ public abstract class Patch
         var unityRef = module.GetAssemblyRefs().FirstOrDefault(a => a.Name == "UnityEngine");
         if (unityRef is null)
         {
-            Console.Error.WriteLine("  UnityEngine assembly reference not found!");
+            AnsiConsole.MarkupLine("[red]  UnityEngine assembly reference not found![/]");
             return null;
         }
 
         var unityAssembly = module.Context.AssemblyResolver.Resolve(unityRef, module);
         if (unityAssembly is null)
         {
-            Console.Error.WriteLine("  UnityEngine assembly not found!");
+            AnsiConsole.MarkupLine("[red]  UnityEngine assembly not found![/]");
             return null;
         }
 
@@ -47,7 +48,7 @@ public abstract class Patch
             return type;
         }
         
-        Console.Error.WriteLine($"  {typeName} type not found in UnityEngine assembly!");
+        AnsiConsole.MarkupLine($"[red]  {typeName} type not found in UnityEngine assembly![/]");
         return null;
     }
 }

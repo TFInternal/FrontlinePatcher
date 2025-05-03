@@ -1,5 +1,6 @@
 using dnlib.DotNet;
 using dnlib.DotNet.Emit;
+using Spectre.Console;
 
 namespace FrontlinePatcher.Patch.Patches;
 
@@ -12,45 +13,45 @@ public class StorePurchasePatch : Patch
         var storeManagerType = module.Find("StoreManager", true);
         if (storeManagerType is null)
         {
-            Console.Error.WriteLine("  StoreManager type not found!");
+            AnsiConsole.MarkupLine("[red]  StoreManager type not found![/]");
             return false;
         }
 
         var storeCurrencyType = storeManagerType.NestedTypes.FirstOrDefault(t => t.Name == "StoreCurrencyType");
         if (storeCurrencyType is null)
         {
-            Console.Error.WriteLine("  StoreManager.StoreCurrencyType type not found!");
+            AnsiConsole.MarkupLine("[red]  StoreManager.StoreCurrencyType type not found![/]");
             return false;
         }
 
         if (!storeCurrencyType.IsEnum)
         {
-            Console.Error.WriteLine("  StoreManager.StoreCurrencyType is not an enum!");
+            AnsiConsole.MarkupLine("[red]  StoreManager.StoreCurrencyType is not an enum![/]");
             return false;
         }
 
         var storeCurrencyRealField = storeCurrencyType.FindField("Real");
         if (storeCurrencyRealField is null)
         {
-            Console.Error.WriteLine("  StoreManager.StoreCurrencyType.Real field not found!");
+            AnsiConsole.MarkupLine("[red]  StoreManager.StoreCurrencyType.Real field not found![/]");
             return false;
         }
         
         if (storeCurrencyRealField.Constant.Value is not int storeCurrencyRealValue)
         {
-            Console.Error.WriteLine("  StoreManager.StoreCurrencyType.Real field is not an int!");
+            AnsiConsole.MarkupLine("[red]  StoreManager.StoreCurrencyType.Real field is not an int![/]");
             return false;
         }
         
         if (!PatchStoreUi(module, storeCurrencyRealValue))
         {
-            Console.Error.WriteLine("  Failed to patch StoreUI!");
+            AnsiConsole.MarkupLine("[red]  Failed to patch StoreUI![/]");
             return false;
         }
         
-        if (!PatchStoreManager(module, storeManagerType, storeCurrencyRealValue))
+        if (!PatchStoreManager(storeManagerType, storeCurrencyRealValue))
         {
-            Console.Error.WriteLine("  Failed to patch StoreManager!");
+            AnsiConsole.MarkupLine("[red]  Failed to patch StoreManager![/]");
             return false;
         }
 
@@ -59,42 +60,42 @@ public class StorePurchasePatch : Patch
 
     private bool PatchStoreUi(ModuleDefMD module, int storeCurrencyRealValue)
     {
-        Console.WriteLine("  Patching StoreUI...");
+        AnsiConsole.WriteLine("  Patching StoreUI...");
         
         var storeUiType = module.Find("StoreUI", true);
         if (storeUiType is null)
         {
-            Console.Error.WriteLine("    StoreUI type not found!");
+            AnsiConsole.MarkupLine("[red]    StoreUI type not found![/]");
             return false;
         }
         
         var productType = module.Find("Product", true);
         if (productType is null)
         {
-            Console.Error.WriteLine("    Product type not found!");
+            AnsiConsole.MarkupLine("[red]    Product type not found![/]");
             return false;
         }
         
         var stateMachineType = storeUiType.NestedTypes.FirstOrDefault(t => t.IsClass && t.Name == "<RunPurchaseFlow>c__Iterator81");
         if (stateMachineType is null)
         {
-            Console.Error.WriteLine("    RunPurchaseFlow state machine type not found!");
+            AnsiConsole.MarkupLine("[red]    RunPurchaseFlow state machine type not found![/]");
             return false;
         }
         
         var targetMethod = stateMachineType.FindMethod("MoveNext");
         if (targetMethod is null)
         {
-            Console.Error.WriteLine("    RunPurchaseFlow state machine MoveNext method not found!");
+            AnsiConsole.MarkupLine("[red]    RunPurchaseFlow state machine MoveNext method not found![/]");
             return false;
         }
         
-        Console.WriteLine($"    RunPurchaseFlow state machine MoveNext method found! {targetMethod.FullName}");
+        AnsiConsole.WriteLine($"    RunPurchaseFlow state machine MoveNext method found! {targetMethod.FullName}");
         
         var currencyField = stateMachineType.FindField("currency");
         if (currencyField is null)
         {
-            Console.Error.WriteLine("    RunPurchaseFlow state machine currency field not found!");
+            AnsiConsole.MarkupLine("[red]    RunPurchaseFlow state machine currency field not found![/]");
             return false;
         }
         
@@ -118,7 +119,7 @@ public class StorePurchasePatch : Patch
         var replaceAt = instructions.IndexOf(instructions.FirstOrDefault(i => i.Offset == 0x0047));
         if (replaceAt == -1)
         {
-            Console.Error.WriteLine("    Failed to find instruction to replace!");
+            AnsiConsole.MarkupLine("[red]    Failed to find instruction to replace![/]");
             return false;
         }
         
@@ -131,22 +132,22 @@ public class StorePurchasePatch : Patch
 
         body.OptimizeBranches();
         
-        Console.WriteLine("    Successfully modified method body!");
+        AnsiConsole.WriteLine("    Successfully modified method body!");
         return true;
     }
 
-    private bool PatchStoreManager(ModuleDefMD module, TypeDef storeManagerType, int storeCurrencyRealValue)
+    private bool PatchStoreManager(TypeDef storeManagerType, int storeCurrencyRealValue)
     {
-        Console.WriteLine("  Patching StoreManager...");
+        AnsiConsole.WriteLine("  Patching StoreManager...");
         
         var targetMethod = storeManagerType.FindMethod("RequestPurchase");
         if (targetMethod is null)
         {
-            Console.Error.WriteLine("    RequestPurchase method not found!");
+            AnsiConsole.MarkupLine("[red]    RequestPurchase method not found![/]");
             return false;
         }
         
-        Console.WriteLine($"    RequestPurchase method found! {targetMethod.FullName}");
+        AnsiConsole.WriteLine($"    RequestPurchase method found! {targetMethod.FullName}");
         
         var body = targetMethod.Body;
         var instructions = body.Instructions;
@@ -165,7 +166,7 @@ public class StorePurchasePatch : Patch
         var insertAfter = instructions.IndexOf(instructions.FirstOrDefault(i => i.Offset == 0x0011));
         if (insertAfter == -1)
         {
-            Console.Error.WriteLine("    Failed to find where to insert instructions!");
+            AnsiConsole.MarkupLine("[red]    Failed to find where to insert instructions![/]");
             return false;
         }
         
@@ -176,7 +177,7 @@ public class StorePurchasePatch : Patch
         
         body.OptimizeBranches();
         
-        Console.WriteLine("    Successfully modified method body!");
+        AnsiConsole.WriteLine("    Successfully modified method body!");
         return true;
     }
 }

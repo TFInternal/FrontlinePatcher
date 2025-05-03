@@ -1,4 +1,5 @@
 using FrontlinePatcher.Processes;
+using Spectre.Console;
 
 namespace FrontlinePatcher.Tools;
 
@@ -10,7 +11,7 @@ public class ApkTool
     {
         if (!File.Exists(apkPath))
         {
-            await Console.Error.WriteLineAsync($"APK file not found: {apkPath}");
+            AnsiConsole.MarkupLine($"[red]APK file not found \"{apkPath}\"![/]");
             return false;
         }
 
@@ -19,16 +20,16 @@ public class ApkTool
             Directory.Delete(outputDir, true);
         }
         
-        Console.WriteLine($"Decompiling APK \"{apkPath}\" to \"{outputDir}\"");
+        AnsiConsole.WriteLine($"Decompiling APK \"{apkPath}\" to \"{outputDir}\"...");
         
         var result = await ProcessExecutor.RunAsync(Name, $"d \"{apkPath}\" -o \"{outputDir}\" -f");
         if (!result.IsSuccess)
         {
-            await Console.Error.WriteLineAsync($"Failed to decompile APK: {apkPath}");
+            AnsiConsole.MarkupLine($"[red]Failed to decompile APK \"{apkPath}\"![/]");
             return false;
         }
         
-        Console.WriteLine($"Decompiled APK to: {outputDir}");
+        AnsiConsole.MarkupLine($"[green]Decompiled APK to \"{outputDir}\"![/]");
         return true;
     }
 
@@ -36,20 +37,20 @@ public class ApkTool
     {
         if (!Directory.Exists(sourceDirectory))
         {
-            await Console.Error.WriteLineAsync($"Source directory not found: {sourceDirectory}");
+            AnsiConsole.MarkupLine($"[red]Source directory not found \"{sourceDirectory}\"![/]");
             return false;
         }
         
-        Console.WriteLine($"Building APK from \"{sourceDirectory}\" to \"{outputApkPath}\"");
+        AnsiConsole.WriteLine($"Building APK from \"{sourceDirectory}\" to \"{outputApkPath}\"...");
         
         var result = await ProcessExecutor.RunAsync(Name, $"b \"{sourceDirectory}\" -o \"{outputApkPath}\"");
         if (!result.IsSuccess)
         {
-            await Console.Error.WriteLineAsync($"Failed to build APK: {outputApkPath}");
+            AnsiConsole.MarkupLine($"[red]Failed to build APK \"{outputApkPath}\"![/]");
             return false;
         }
         
-        Console.WriteLine($"Built APK to: {outputApkPath}");
+        AnsiConsole.MarkupLine($"[green]Built APK to \"{outputApkPath}\"![/]");
         return true;
     }
 }

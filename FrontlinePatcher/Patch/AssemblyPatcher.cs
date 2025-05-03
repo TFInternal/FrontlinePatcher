@@ -1,5 +1,6 @@
 using dnlib.DotNet;
 using dnlib.DotNet.Writer;
+using Spectre.Console;
 
 namespace FrontlinePatcher.Patch;
 
@@ -30,30 +31,29 @@ public class AssemblyPatcher
     {
         if (_module is null)
         {
-            Console.Error.WriteLine("Assembly has not been loaded!");
+            AnsiConsole.MarkupLine("[red]Assembly has not been loaded![/]");
             return false;
         }
         
         foreach (var patch in _patches)
         {
-            Console.WriteLine($"Applying patch: {patch.Name}");
+            AnsiConsole.MarkupLine($"[yellow]Applying patch \"{patch.Name}\"...[/]");
 
             try
             {
                 if (patch.Apply(_module))
                 {
-                    Console.WriteLine("  Patch applied successfully.");
+                    AnsiConsole.MarkupLine("[green]  Patch applied successfully.[/]");
                 }
                 else
                 {
-                    Console.Error.WriteLine("  Failed to apply patch!");
+                    AnsiConsole.MarkupLine("[red]  Failed to apply patch![/]");
                     return false;
                 }
             }
             catch (Exception ex)
             {
-                Console.Error.WriteLine("  Error applying patch!");
-                Console.Error.WriteLine(ex);
+                AnsiConsole.MarkupLine($"[red]  Error applying patch: {ex.Message}[/]");
                 return false;
             }
         }
@@ -63,7 +63,7 @@ public class AssemblyPatcher
 
     public void LoadAssembly()
     {
-        Console.WriteLine("Loading assembly...");
+        AnsiConsole.WriteLine("Loading assembly...");
 
         var moduleContext = ModuleDef.CreateModuleContext();
         var resolver = (AssemblyResolver) moduleContext.AssemblyResolver;
@@ -71,7 +71,7 @@ public class AssemblyPatcher
         
         _module = ModuleDefMD.Load(_assemblyPath, moduleContext);
         
-        Console.WriteLine($"Loaded assembly: {_module.Name}");
+        AnsiConsole.WriteLine($"Loaded assembly \"{_module.Name}\".");
     }
 
     public void SaveAssembly(string outputPath)
@@ -81,7 +81,7 @@ public class AssemblyPatcher
             throw new InvalidOperationException("Assembly has not been loaded.");
         }
         
-        Console.WriteLine($"Saving assembly to: {outputPath}");
+        AnsiConsole.WriteLine($"Saving assembly to \"{outputPath}\"...");
 
         var writerOptions = new ModuleWriterOptions(_module);
         _module.Write(outputPath, writerOptions);

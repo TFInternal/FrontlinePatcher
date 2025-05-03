@@ -44,7 +44,9 @@ public class PatchCommand : AsyncCommand<PatchCommand.Settings>
         AnsiConsole.WriteLine("--- Decompile APK ---");
 
         var decompiledApkDir = Path.Combine(tempDir, "decompiled_apk");
-        if (!await ApkTool.DecompileAsync(settings.InputApk, decompiledApkDir))
+        var decompileSuccess = await AnsiConsole.Status().StartAsync("Decompiling APK...", async _ =>
+            await ApkTool.DecompileAsync(settings.InputApk, decompiledApkDir));
+        if (!decompileSuccess)
         {
             return 1;
         }
@@ -65,17 +67,25 @@ public class PatchCommand : AsyncCommand<PatchCommand.Settings>
         patcher.AddPatch(new GameDebugLogPatch());
         patcher.AddPatch(new StorePurchasePatch());
 
-        patcher.LoadAssembly();
+        var patchResult = AnsiConsole.Status().Start("Loading assembly...", ctx =>
+        {
+            patcher.LoadAssembly();
+            ctx.Status("Applying patches...");
+            
+            if (patcher.ApplyPatches())
+            {
+                AnsiConsole.MarkupLine("[green]All patches applied successfully![/]");
+                patcher.SaveAssembly(patchedAssemblyPath);
+                return 0;
+            }
 
-        if (patcher.ApplyPatches())
-        {
-            AnsiConsole.WriteLine("All patches applied successfully!");
-            patcher.SaveAssembly(patchedAssemblyPath);
-        }
-        else
-        {
             AnsiConsole.MarkupLine("[red]Failed to apply patches![/]");
             return 1;
+        });
+
+        if (patchResult != 0)
+        {
+            return patchResult;
         }
 
         File.Delete(assemblyPath);
@@ -85,7 +95,9 @@ public class PatchCommand : AsyncCommand<PatchCommand.Settings>
         AnsiConsole.WriteLine();
         AnsiConsole.WriteLine("--- Recompile APK ---");
 
-        if (!await ApkTool.BuildApkAsync(decompiledApkDir, settings.OutputApk))
+        var recompileSuccess = await AnsiConsole.Status().StartAsync("Recompiling APK...", async _ =>
+            await ApkTool.BuildApkAsync(decompiledApkDir, settings.OutputApk));
+        if (!recompileSuccess)
         {
             return 1;
         }
@@ -93,7 +105,10 @@ public class PatchCommand : AsyncCommand<PatchCommand.Settings>
         AnsiConsole.WriteLine();
         AnsiConsole.WriteLine("--- Sign APK ---");
 
-        if (!await ApkSigner.SignApkAsync(settings.OutputApk, settings.KeystorePath, settings.KeystorePassword, settings.OutputApk))
+        var signingSuccess = await AnsiConsole.Status().StartAsync("Signing APK...", async _ =>
+            await ApkSigner.SignApkAsync(settings.OutputApk, settings.KeystorePath,
+                settings.KeystorePassword, settings.OutputApk));
+        if (!signingSuccess)
         {
             return 1;
         }
@@ -107,7 +122,7 @@ public class PatchCommand : AsyncCommand<PatchCommand.Settings>
         AnsiConsole.WriteLine();
         AnsiConsole.WriteLine();
         AnsiConsole.WriteLine();
-        AnsiConsole.WriteLine($"Patched APK saved to \"{settings.OutputApk}\"!");
+        AnsiConsole.MarkupLine($"[green]Patched APK saved to \"{settings.OutputApk}\"![/]");
         
         return 0;
     }
