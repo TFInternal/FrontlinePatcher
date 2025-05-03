@@ -76,7 +76,7 @@ public class StorePurchasePatch : Patch
             return false;
         }
         
-        var stateMachineType = storeUiType.NestedTypes.FirstOrDefault(t => t.IsClass && t.Name == "<RunPurchaseFlow>c__Iterator81");
+        var stateMachineType = storeUiType.NestedTypes.FirstOrDefault(t => t.IsClass && t.Name.StartsWith("<RunPurchaseFlow>c__Iterator"));
         if (stateMachineType is null)
         {
             AnsiConsole.MarkupLine("[red]    RunPurchaseFlow state machine type not found![/]");
