@@ -3,7 +3,7 @@ using Spectre.Console;
 
 namespace FrontlinePatcher.Tools;
 
-public class ApkTool
+public static class ApkTool
 {
     private const string Name = "./apktool";
 

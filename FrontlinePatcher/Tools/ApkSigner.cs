@@ -3,7 +3,7 @@ using Spectre.Console;
 
 namespace FrontlinePatcher.Tools;
 
-public class ApkSigner
+public static class ApkSigner
 {
     private const string Name = "/home/nuutti/Android/Sdk/build-tools/34.0.0/apksigner";
 
