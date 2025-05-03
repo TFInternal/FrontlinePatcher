@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using FrontlinePatcher.Files;
 using FrontlinePatcher.Patch;
 using FrontlinePatcher.Patch.Patches;
 using FrontlinePatcher.Tools;
@@ -91,6 +92,28 @@ public class PatchCommand : AsyncCommand<PatchCommand.Settings>
         File.Delete(assemblyPath);
         File.Move(patchedAssemblyPath, assemblyPath);
         AnsiConsole.WriteLine("Replaced original assembly with patched assembly.");
+        
+        AnsiConsole.WriteLine();
+        AnsiConsole.WriteLine("--- Patch Files ---");
+
+        var modificationRules = new List<FileModificationRule>
+        {
+            // Unofficial official server only supports HTTPS
+            new("assets/serverAddresses.json", @"http:\/\/", "https://"),
+            
+            // Replace S3 with our own server
+            new("assets/serverAddresses.json", "pc-tffl-leaderboard.s3-website-us-east-1.amazonaws.com", "prod-us-east-1-gameserver-lb.tfflinternal.com"),
+            new("assets/serverAddresses.json", "pc-tffl-html.s3-website-us-east-1.amazonaws.com", "tfflinternal.com"),
+            
+            // Replace Nexon TOY with OpenTOY
+            new("smali/kr/co/nexon/toy/api/request/NXToyRequestType.smali", "m-api.nexon.com", "opentoy.tfflinternal.com")
+        };
+
+        if (!FileModifier.ApplyModifications(decompiledApkDir, modificationRules))
+        {
+            AnsiConsole.MarkupLine("[red]Failed to apply file modifications![/]");
+            return 1;
+        }
 
         AnsiConsole.WriteLine();
         AnsiConsole.WriteLine("--- Recompile APK ---");
