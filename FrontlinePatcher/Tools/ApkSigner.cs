@@ -5,7 +5,24 @@ namespace FrontlinePatcher.Tools;
 
 public static class ApkSigner
 {
-    private const string Name = "/home/nuutti/Android/Sdk/build-tools/34.0.0/apksigner";
+    private const string KeyToolName = "keytool";
+    
+    private const string ApkSignerName = "/home/nuutti/Android/Sdk/build-tools/34.0.0/apksigner";
+
+    public static async Task<bool> GenerateKeystore(string keystorePath, string keystorePassword)
+    {
+        const string distinguishedName = "CN=Unknown, OU=Unknown, O=Unknown, L=Unknown, ST=Unknown, C=FI";
+        
+        var result = await ProcessExecutor.RunAsync(KeyToolName, $"-genkey -keystore \"{keystorePath}\" -storepass \"{keystorePassword}\" -keyalg RSA -dname \"{distinguishedName}\" -validity 10000");
+        if (!result.IsSuccess)
+        {
+            AnsiConsole.MarkupLine($"[red]Failed to generate keystore \"{keystorePath}\"![/]");
+            return false;
+        }
+        
+        AnsiConsole.MarkupLine($"[green]Generated keystore \"{keystorePath}\"![/]");
+        return true;
+    }
 
     public static async Task<bool> SignApkAsync(string apkPath, string keystorePath, string keystorePassword, string outputApkPath)
     {
@@ -30,7 +47,7 @@ public static class ApkSigner
             AnsiConsole.WriteLine($"Signing APK \"{apkPath}\" with keystore \"{keystorePath}\" to \"{outputApkPath}\"...");
         }
 
-        var result = await ProcessExecutor.RunAsync(Name, $"sign --ks \"{keystorePath}\" --ks-pass pass:{keystorePassword} --out \"{outputApkPath}\" \"{apkPath}\"");
+        var result = await ProcessExecutor.RunAsync(ApkSignerName, $"sign --ks \"{keystorePath}\" --ks-pass pass:{keystorePassword} --out \"{outputApkPath}\" \"{apkPath}\"");
         if (!result.IsSuccess)
         {
             AnsiConsole.MarkupLine($"[red]Failed to sign APK \"{apkPath}\"![/]");

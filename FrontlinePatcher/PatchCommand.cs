@@ -21,12 +21,12 @@ public class PatchCommand : AsyncCommand<PatchCommand.Settings>
         public required string OutputApk { get; init; }
         
         [Description("Path to the keystore for signing the APK.")]
-        [CommandArgument(2, "<Keystore Path>")]
-        public required string KeystorePath { get; init; }
+        [CommandOption("--keystore")]
+        public string? KeystorePath { get; init; }
         
         [Description("Password for the keystore.")]
-        [CommandArgument(3, "<Keystore Password>")]
-        public required string KeystorePassword { get; init; }
+        [CommandOption("--keystore-password")]
+        public string? KeystorePassword { get; init; }
     }
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
@@ -128,9 +128,32 @@ public class PatchCommand : AsyncCommand<PatchCommand.Settings>
         AnsiConsole.WriteLine();
         AnsiConsole.WriteLine("--- Sign APK ---");
 
+        const string fallbackKeystorePath = "frontline.keystore";
+        const string fallbackKeystorePassword = "frontline";
+        
+        var keystorePath = settings.KeystorePath ?? fallbackKeystorePath;
+        var keystorePassword = settings.KeystorePassword ?? fallbackKeystorePassword;
+
+        if (!File.Exists(keystorePath))
+        {
+            if (settings.KeystorePath is not null && settings.KeystorePath != fallbackKeystorePath)
+            {
+                AnsiConsole.MarkupLine($"[red]Keystore file not found at \"{keystorePath}\"![/]");
+                return 1;
+            }
+            
+            AnsiConsole.MarkupLine("[red]Keystore path was not provided. Generating a new keystore for you...[/]");
+            
+            var keystoreGenerationSuccess = await AnsiConsole.Status().StartAsync("Generating keystore...", async _ =>
+                await ApkSigner.GenerateKeystore(keystorePath, keystorePassword));
+            if (!keystoreGenerationSuccess)
+            {
+                return 1;
+            }
+        }
+
         var signingSuccess = await AnsiConsole.Status().StartAsync("Signing APK...", async _ =>
-            await ApkSigner.SignApkAsync(settings.OutputApk, settings.KeystorePath,
-                settings.KeystorePassword, settings.OutputApk));
+            await ApkSigner.SignApkAsync(settings.OutputApk, keystorePath, keystorePassword, settings.OutputApk));
         if (!signingSuccess)
         {
             return 1;
