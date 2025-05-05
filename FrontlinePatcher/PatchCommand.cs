@@ -27,6 +27,15 @@ public class PatchCommand : AsyncCommand<PatchCommand.Settings>
         [Description("Password for the keystore.")]
         [CommandOption("--keystore-password")]
         public string? KeystorePassword { get; init; }
+        
+        [Description("Frontline server URL.")]
+        [CommandOption("--frontline-url")]
+        public string? FrontlineUrl { get; init; }
+        
+        [Description("OpenTOY server URL.")]
+        [CommandOption("--opentoy-url")]
+        [DefaultValue("opentoy.tfflinternal.com")]
+        public required string OpenToyUrl { get; init; }
     }
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
@@ -106,8 +115,13 @@ public class PatchCommand : AsyncCommand<PatchCommand.Settings>
             new("assets/serverAddresses.json", "pc-tffl-html.s3-website-us-east-1.amazonaws.com", "tfflinternal.com"),
             
             // Replace Nexon TOY with OpenTOY
-            new("smali/kr/co/nexon/toy/api/request/NXToyRequestType.smali", "m-api.nexon.com", "opentoy.tfflinternal.com")
+            new("smali/kr/co/nexon/toy/api/request/NXToyRequestType.smali", "m-api.nexon.com", settings.OpenToyUrl)
         };
+        
+        if (settings.FrontlineUrl is not null)
+        {
+            modificationRules.Add(new FileModificationRule("assets/serverAddresses.json", @"(?<=\/\/|"")([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}", settings.FrontlineUrl));
+        }
 
         if (!FileModifier.ApplyModifications(decompiledApkDir, modificationRules))
         {
