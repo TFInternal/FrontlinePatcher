@@ -36,6 +36,10 @@ public class PatchCommand : AsyncCommand<PatchCommand.Settings>
         [CommandOption("--opentoy-url")]
         [DefaultValue("opentoy.tfflinternal.com")]
         public required string OpenToyUrl { get; init; }
+        
+        [Description("Pause before building the APK allowing for manual modifications.")]
+        [CommandOption("--pause-before-build")]
+        public bool? PauseBeforeBuild { get; init; }
     }
 
     public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
@@ -127,6 +131,12 @@ public class PatchCommand : AsyncCommand<PatchCommand.Settings>
         {
             AnsiConsole.MarkupLine("[red]Failed to apply file modifications![/]");
             return 1;
+        }
+        
+        if (settings.PauseBeforeBuild == true)
+        {
+            AnsiConsole.MarkupLine("[yellow]Press enter to continue...[/]");
+            Console.ReadLine();
         }
 
         AnsiConsole.WriteLine();
