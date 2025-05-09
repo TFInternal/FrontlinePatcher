@@ -66,7 +66,7 @@ public static class ProcessExecutor
         }
         catch (Exception e)
         {
-            Console.WriteLine(e);
+            AnsiConsole.MarkupLine($"[red]{e.Message}[/]");
             return new ProcessResult(-1, string.Empty, e.Message);
         }
         
