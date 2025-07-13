@@ -47,6 +47,21 @@ public class PatchCommand : AsyncCommand<PatchCommand.Settings>
         AnsiConsole.WriteLine("TITANFALL: FRONTLINE PATCHER");
         AnsiConsole.WriteLine();
 
+        AnsiConsole.WriteLine("--- Find Tools ---");
+
+        var toolFinder = new ToolFinder();
+        toolFinder.FindTools();
+
+        var apkToolPath = toolFinder.GetToolPath("apktool");
+        var apkSignerPath = toolFinder.GetToolPath("apksigner");
+        var keytoolPath = toolFinder.GetToolPath("keytool");
+
+        if (string.IsNullOrEmpty(apkToolPath) || string.IsNullOrEmpty(apkSignerPath) || string.IsNullOrEmpty(keytoolPath))
+        {
+            AnsiConsole.MarkupLine("[red]Required tool(s) not found![/]");
+            return 1;
+        }
+
         const string tempDir = "temp";
         if (Directory.Exists(tempDir))
         {
@@ -55,11 +70,12 @@ public class PatchCommand : AsyncCommand<PatchCommand.Settings>
 
         Directory.CreateDirectory(tempDir);
 
+        AnsiConsole.WriteLine();
         AnsiConsole.WriteLine("--- Decompile APK ---");
 
         var decompiledApkDir = Path.Combine(tempDir, "decompiled_apk");
         var decompileSuccess = await AnsiConsole.Status().StartAsync("Decompiling APK...", async _ =>
-            await ApkTool.DecompileAsync(settings.InputApk, decompiledApkDir));
+            await ApkTool.DecompileAsync(apkToolPath, settings.InputApk, decompiledApkDir));
         if (!decompileSuccess)
         {
             return 1;
@@ -143,7 +159,7 @@ public class PatchCommand : AsyncCommand<PatchCommand.Settings>
         AnsiConsole.WriteLine("--- Recompile APK ---");
 
         var recompileSuccess = await AnsiConsole.Status().StartAsync("Recompiling APK...", async _ =>
-            await ApkTool.BuildApkAsync(decompiledApkDir, settings.OutputApk));
+            await ApkTool.BuildApkAsync(apkToolPath, decompiledApkDir, settings.OutputApk));
         if (!recompileSuccess)
         {
             return 1;
@@ -169,7 +185,7 @@ public class PatchCommand : AsyncCommand<PatchCommand.Settings>
             AnsiConsole.MarkupLine("[red]Keystore path was not provided. Generating a new keystore for you...[/]");
             
             var keystoreGenerationSuccess = await AnsiConsole.Status().StartAsync("Generating keystore...", async _ =>
-                await ApkSigner.GenerateKeystore(keystorePath, keystorePassword));
+                await ApkSigner.GenerateKeystore(keytoolPath, keystorePath, keystorePassword));
             if (!keystoreGenerationSuccess)
             {
                 return 1;
@@ -177,7 +193,7 @@ public class PatchCommand : AsyncCommand<PatchCommand.Settings>
         }
 
         var signingSuccess = await AnsiConsole.Status().StartAsync("Signing APK...", async _ =>
-            await ApkSigner.SignApkAsync(settings.OutputApk, keystorePath, keystorePassword, settings.OutputApk));
+            await ApkSigner.SignApkAsync(apkSignerPath, settings.OutputApk, keystorePath, keystorePassword, settings.OutputApk));
         if (!signingSuccess)
         {
             return 1;

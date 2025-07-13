@@ -5,9 +5,7 @@ namespace FrontlinePatcher.Tools;
 
 public static class ApkTool
 {
-    private const string Name = "./apktool";
-
-    public static async Task<bool> DecompileAsync(string apkPath, string outputDir)
+    public static async Task<bool> DecompileAsync(string toolPath, string apkPath, string outputDir)
     {
         if (!File.Exists(apkPath))
         {
@@ -22,7 +20,7 @@ public static class ApkTool
         
         AnsiConsole.WriteLine($"Decompiling APK \"{apkPath}\" to \"{outputDir}\"...");
         
-        var result = await ProcessExecutor.RunAsync(Name, $"d \"{apkPath}\" -o \"{outputDir}\" -f");
+        var result = await ProcessExecutor.RunAsync(toolPath, $"d \"{apkPath}\" -o \"{outputDir}\" -f");
         if (!result.IsSuccess)
         {
             AnsiConsole.MarkupLine($"[red]Failed to decompile APK \"{apkPath}\"![/]");
@@ -33,7 +31,7 @@ public static class ApkTool
         return true;
     }
 
-    public static async Task<bool> BuildApkAsync(string sourceDirectory, string outputApkPath)
+    public static async Task<bool> BuildApkAsync(string toolPath, string sourceDirectory, string outputApkPath)
     {
         if (!Directory.Exists(sourceDirectory))
         {
@@ -43,7 +41,7 @@ public static class ApkTool
         
         AnsiConsole.WriteLine($"Building APK from \"{sourceDirectory}\" to \"{outputApkPath}\"...");
         
-        var result = await ProcessExecutor.RunAsync(Name, $"b \"{sourceDirectory}\" -o \"{outputApkPath}\"");
+        var result = await ProcessExecutor.RunAsync(toolPath, $"b \"{sourceDirectory}\" -o \"{outputApkPath}\"");
         if (!result.IsSuccess)
         {
             AnsiConsole.MarkupLine($"[red]Failed to build APK \"{outputApkPath}\"![/]");
