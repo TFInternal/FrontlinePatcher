@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Text;
 using Spectre.Console;
 
@@ -16,6 +17,7 @@ public static class ProcessExecutor
             {
                 FileName = fileName,
                 Arguments = arguments,
+                RedirectStandardInput = true,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 UseShellExecute = false,
@@ -61,6 +63,14 @@ public static class ProcessExecutor
             process.Start();
             process.BeginOutputReadLine();
             process.BeginErrorReadLine();
+
+            // On Windows for some reason apktool has a prompt for user input
+            // so we need to send an empty line to continue
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                process.StandardInput.WriteLine();
+                process.StandardInput.Close();
+            }
 
             await Task.WhenAll(process.WaitForExitAsync(), outputCloseEvent.Task, errorCloseEvent.Task);
         }
