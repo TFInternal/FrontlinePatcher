@@ -39,8 +39,8 @@ jobs:
 
       - name: Package artifacts
         run: |
-          zip release-linux.zip ./publish-linux-x64
-          zip release-windows.zip ./publish-win-x64
+          zip -rj release-linux.zip ./publish-linux-x64
+          zip -rj release-windows.zip ./publish-win-x64
 
       - name: Upload Linux artifact
         uses: actions/upload-artifact@v4
