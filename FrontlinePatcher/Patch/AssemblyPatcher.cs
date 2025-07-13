@@ -85,5 +85,6 @@ public class AssemblyPatcher
 
         var writerOptions = new ModuleWriterOptions(_module);
         _module.Write(outputPath, writerOptions);
+        _module.Dispose();
     }
 }
