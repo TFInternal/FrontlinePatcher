@@ -43,13 +43,13 @@ jobs:
           zip -rj FrontlinePatcher-Windows.zip ./publish-win-x64
 
       - name: Upload Linux artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: FrontlinePatcher-Linux.zip
           path: FrontlinePatcher-Linux.zip
 
       - name: Upload Windows artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: FrontlinePatcher-Windows.zip
           path: FrontlinePatcher-Windows.zip
@@ -61,12 +61,12 @@ jobs:
       contents: write
     steps:
       - name: Download Linux artifact
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: FrontlinePatcher-Linux.zip
 
       - name: Download Windows artifact
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: FrontlinePatcher-Windows.zip
 
